@@ -21,8 +21,8 @@ A general-purpose HTTP load-testing and benchmarking library written in TypeScri
 1. Clone the repository:
 
 ```
-git clone <repository-url>
-cd load-tester
+git clone git@github.com:AkashRupapara/HTTP-load-testing-and-benchmarking-library.git
+cd HTTP-load-testing-and-benchmarking-library.git
 ```
 2. Install the dependencies:
 ```

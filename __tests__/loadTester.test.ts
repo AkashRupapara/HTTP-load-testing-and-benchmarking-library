@@ -1,9 +1,6 @@
-import { Command } from 'commander';
 import { performance } from 'perf_hooks';
-import http from 'http';
-import https from 'https';
 import url from 'url';
-import { makeRequest, startLoadTest, reportMetrics } from '../loadTester';
+import { startLoadTest, reportMetrics } from '../loadTester';
 
 // Mock dependencies
 jest.mock('http');
