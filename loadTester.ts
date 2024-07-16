@@ -110,11 +110,4 @@ export const reportMetrics = () => {
   console.log(`Latency standard deviation: ${latencyStdDev.toFixed(2)}ms`);
 };
 
-// Handle SIGINT (Ctrl+C) to gracefully stop the test and report metrics
-process.on('SIGINT', () => {
-  console.log('\nLoad test interrupted. Reporting metrics:');
-  reportMetrics();
-  process.exit();
-});
-
 startLoadTest(); // Start the load test

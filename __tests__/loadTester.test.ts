@@ -2,26 +2,39 @@ import { Command } from 'commander';
 import { performance } from 'perf_hooks';
 import http from 'http';
 import https from 'https';
+import url from 'url';
 import { makeRequest, startLoadTest, reportMetrics } from '../loadTester';
 
 // Mock dependencies
 jest.mock('http');
 jest.mock('https');
 jest.mock('url');
-jest.mock('commander');
+jest.mock('commander', () => {
+  const mCommand = {
+    requiredOption: jest.fn().mockReturnThis(),
+    option: jest.fn().mockReturnThis(),
+    parse: jest.fn().mockReturnThis(),
+    opts: jest.fn(() => ({
+      url: 'http://example.com',
+      qps: '20',
+      concurrency: '5',
+      method: 'POST',
+      header: ['Content-Type: application/json'],
+      data: '{"key":"value"}',
+      duration: '30',
+    })),
+  };
+  return { Command: jest.fn(() => mCommand) };
+});
 
-// Mock commander Command instance
-const mockedCommand = Command as jest.MockedClass<typeof Command>;
-const mockOpts = {
-  url: 'http://example.com',
-  qps: '20',
-  concurrency: '5',
-  method: 'POST',
-  header: ['Content-Type: application/json'],
-  data: '{"key":"value"}',
-  duration: '30',
+const parsedUrl = {
+  protocol: 'http:',
+  hostname: 'example.com',
+  port: null,
+  path: '/',
+  href: 'http://example.com/',
+  pathname: '/',
 };
-const mockedProgram = new mockedCommand();
 
 describe('loadTester module', () => {
   let originalProcess: NodeJS.Process;
@@ -35,18 +48,25 @@ describe('loadTester module', () => {
     global.process = originalProcess;
   });
 
+  beforeEach(() => {
+    jest.spyOn(url, 'parse').mockReturnValue(parsedUrl as unknown as url.UrlWithStringQuery);
+  });
+
   test('startLoadTest initiates correct number of requests', async () => {
+    // Mocking setTimeout to call the function synchronously
     jest.spyOn(global, 'setTimeout').mockImplementationOnce((fn) => {
       fn();
-      return 1 as any;
+      return 1 as any; // Mocking the timer ID
     });
 
-    await startLoadTest();
+    await startLoadTest(); // Calling the function under test
 
+    // Asserting that setTimeout was called exactly once
     expect(setTimeout).toHaveBeenCalledTimes(1);
   });
 
   test('reportMetrics function reports correct metrics', () => {
+    // Mocking metrics data
     const metrics = {
       latency: [100, 200, 300, 400, 500],
       errorCount: 1,
@@ -54,10 +74,12 @@ describe('loadTester module', () => {
 
     const consoleSpy = jest.spyOn(console, 'log');
 
+    // Mocking performance.now() to return a fixed value
     jest.spyOn(performance, 'now').mockReturnValueOnce(2000);
 
-    reportMetrics();
+    reportMetrics(); // Calling the function under test
 
+    // Assertions to check if metrics are reported correctly
     expect(consoleSpy).toHaveBeenCalledWith('Total requests: 6');
     expect(consoleSpy).toHaveBeenCalledWith('Successful requests: 5');
     expect(consoleSpy).toHaveBeenCalledWith('Error rate: 16.666666666666664%');
