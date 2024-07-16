@@ -1,28 +1,7 @@
 import { performance } from 'perf_hooks';
 import url from 'url';
 import { startLoadTest, reportMetrics } from '../loadTester';
-
-// Mock dependencies
-jest.mock('http');
-jest.mock('https');
-jest.mock('url');
-jest.mock('commander', () => {
-  const mCommand = {
-    requiredOption: jest.fn().mockReturnThis(),
-    option: jest.fn().mockReturnThis(),
-    parse: jest.fn().mockReturnThis(),
-    opts: jest.fn(() => ({
-      url: 'http://example.com',
-      qps: '20',
-      concurrency: '5',
-      method: 'POST',
-      header: ['Content-Type: application/json'],
-      data: '{"key":"value"}',
-      duration: '30',
-    })),
-  };
-  return { Command: jest.fn(() => mCommand) };
-});
+import { Command } from 'commander';
 
 const parsedUrl = {
   protocol: 'http:',
@@ -46,6 +25,27 @@ describe('loadTester module', () => {
   });
 
   beforeEach(() => {
+    // Mock dependencies
+    jest.mock('commander', () => {
+      const mCommand = {
+        requiredOption: jest.fn().mockReturnThis(),
+        option: jest.fn().mockReturnThis(),
+        parse: jest.fn().mockReturnThis(),
+        opts: jest.fn(()=>{
+          const mockOpts = {
+            url: 'http://example.com',
+            qps: '20',
+            concurrency: '5',
+            method: 'POST',
+            header: ['Content-Type: application/json'],
+            data: '{"key":"value"}',
+            duration: '30',
+          };
+          return mockOpts;
+        }),
+      };
+      return { Command: jest.fn(() => mCommand) };
+    });    
     jest.spyOn(url, 'parse').mockReturnValue(parsedUrl as unknown as url.UrlWithStringQuery);
   });
 
