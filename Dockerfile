@@ -1,20 +1,20 @@
-# Use Node.js LTS version as the base image
+# Use the official Node.js image.
 FROM node:14
 
-# Set the working directory
-WORKDIR /app
+# Create and change to the app directory.
+WORKDIR /usr/src/app
 
-# Copy package.json and package-lock.json files
+# Copy application dependency manifests to the container image.
 COPY package*.json ./
 
-# Install dependencies
+# Install dependencies.
 RUN npm install
 
-# Copy the rest of the application code
+# Copy local code to the container image.
 COPY . .
 
-# Set the entry point to ts-node
-ENTRYPOINT ["npx", "ts-node", "index.ts"]
+# Build the TypeScript code.
+RUN npx tsc
 
-# Provide default arguments for the command
-CMD ["--config", "/app/config.json"]
+# Run the load tester.
+ENTRYPOINT ["npx", "ts-node", "loadTester.ts"]

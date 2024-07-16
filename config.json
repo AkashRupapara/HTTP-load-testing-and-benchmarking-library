@@ -1,7 +1,0 @@
-{
-    "url": "http://example.com",
-    "method": "GET",
-    "qps": 10,
-    "duration": 10,
-    "output": "json"
-}
