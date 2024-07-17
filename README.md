@@ -66,3 +66,5 @@ To run the unit tests, use the following command:
 ```
 npm test
 ```
+<img width="693" alt="Screenshot 2024-07-16 at 8 25 16 PM" src="https://github.com/user-attachments/assets/43c942ee-f8b2-4808-804f-e4c983a15c1b">
+
