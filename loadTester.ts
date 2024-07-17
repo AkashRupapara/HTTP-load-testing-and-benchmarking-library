@@ -1,9 +1,9 @@
 import { Command } from 'commander';
 import { performance } from 'perf_hooks';
+import { reportMetrics } from './reportMetrics';
 import http from 'http';
 import https from 'https';
 import url from 'url';
-import { mean, stddev } from './stats';
 
 const program = new Command();
 
@@ -41,7 +41,7 @@ const httpModule = parsedUrl.protocol === 'https:' ? https : http;
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 // Define metrics interface and initialize metrics
-interface Metrics {
+export interface Metrics {
   latency: number[];
   errorCount: number;
 }
@@ -89,25 +89,14 @@ export const startLoadTest = async () => {
   });
 
   await Promise.all(workers.map(worker => worker())); // Start all workers
-  reportMetrics(); // Report metrics after test completes
-};
-
-// Function to report metrics
-export const reportMetrics = () => {
-  const totalRequests = metrics.latency.length + metrics.errorCount;
-  const successCount = metrics.latency.length;
-  const averageLatency = mean(metrics.latency);
-  const minLatency = Math.min(...metrics.latency);
-  const maxLatency = Math.max(...metrics.latency);
-  const latencyStdDev = stddev(metrics.latency);
-
-  console.log(`Total requests: ${totalRequests}`);
-  console.log(`Successful requests: ${successCount}`);
-  console.log(`Error rate: ${(metrics.errorCount / totalRequests) * 100}%`);
-  console.log(`Average latency: ${averageLatency.toFixed(2)}ms`);
-  console.log(`Min latency: ${minLatency.toFixed(2)}ms`);
-  console.log(`Max latency: ${maxLatency.toFixed(2)}ms`);
-  console.log(`Latency standard deviation: ${latencyStdDev.toFixed(2)}ms`);
+  const reports = reportMetrics(metrics); // Report metrics after test completes
+  console.log(`Total requests: ${reports.totalRequests}`);
+  console.log(`Successful requests: ${reports.successCount}`);
+  console.log(`Error rate: ${reports.errorRate}%`);
+  console.log(`Average latency: ${reports.averageLatency}ms`);
+  console.log(`Min latency: ${reports.minLatency}ms`);
+  console.log(`Max latency: ${reports.maxLatency}ms`);
+  console.log(`Latency standard deviation: ${reports.maxLatency}ms`);
 };
 
 startLoadTest(); // Start the load test
