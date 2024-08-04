@@ -58,37 +58,37 @@ export const makeRequest = () => {
     res.on('data', () => {}); // Consume response data to free up memory
     res.on('end', () => {
       const end = performance.now();
-      metrics.latency.push(end - start); // Record latency
+      metrics.latency.push(end - start);
     });
   });
 
   req.on('error', () => {
-    metrics.errorCount += 1; // Increment error count on request failure
+    metrics.errorCount++;
   });
 
-  if (method !== 'GET' && data) {
-    req.write(data); // Write request payload for non-GET methods
+  if (data) {
+    req.write(data);
   }
 
   req.end();
 };
 
-// Function to start the load test
-export const startLoadTest = async () => {
-  console.log(`Starting load test on ${targetUrl} with ${qps} QPS, ${concurrency} concurrency for ${options.duration} seconds`);
+const startLoadTest = async () => {
+  const interval = 1000 / qps; // Interval between requests in milliseconds
+  const startTime = performance.now();
+  const endTime = startTime + duration;
 
-  const interval = 1000 / qps;
-  const endTime = performance.now() + duration;
-
-  // Create an array of worker functions to simulate concurrency
-  const workers = Array.from({ length: concurrency }, () => async () => {
+  const worker = async () => {
     while (performance.now() < endTime) {
       makeRequest();
       await sleep(interval);
     }
-  });
+  };
 
-  await Promise.all(workers.map(worker => worker())); // Start all workers
+  const workers = new Array(concurrency).fill(null).map(() => worker());
+  await Promise.all(workers); // Start all workers
+
+  // Ensure to stop making requests after the specified duration
   const reports = reportMetrics(metrics); // Report metrics after test completes
   console.log(`Total requests: ${reports.totalRequests}`);
   console.log(`Successful requests: ${reports.successCount}`);
@@ -96,7 +96,9 @@ export const startLoadTest = async () => {
   console.log(`Average latency: ${reports.averageLatency}ms`);
   console.log(`Min latency: ${reports.minLatency}ms`);
   console.log(`Max latency: ${reports.maxLatency}ms`);
-  console.log(`Latency standard deviation: ${reports.maxLatency}ms`);
+  console.log(`Latency standard deviation: ${reports.latencyStdDev}ms`);
+
+  process.exit(0); // Force terminate the process
 };
 
 startLoadTest(); // Start the load test
